@@ -36,8 +36,6 @@ Configuration:
 Edit the configuration parameters in the script as needed:
 
 ```python
-Copy
-Edit
 DST_IP = "192.168.86.32"          # Target IP address
 DST_MAC = "00:11:22:33:44:55"      # Target MAC address
 SRC_IP = "10.0.0.1"               # Spoofed source IP address
