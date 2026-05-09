@@ -3,7 +3,7 @@ import sys
 import argparse
 
 
-def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25, iface=None):
+def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25, iface=None, inter=0):
     try:
         packet = (Ether(src=src_mac, dst=dst_mac) /
                   IP(src=src_ip, dst=dst_ip) /
@@ -12,8 +12,8 @@ def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25
         packet.show()
 
         iface = iface or conf.iface
-        print(f"Sending {count} spoofed packets to {dst_ip}:{dst_port} via {iface}...")
-        sendp(packet, iface=iface, count=count, verbose=True)
+        print(f"Sending {count} spoofed packets to {dst_ip}:{dst_port} via {iface} (inter={inter}s)...")
+        sendp(packet, iface=iface, count=count, inter=inter, verbose=True)
 
         print("Packets sent successfully.")
 
@@ -36,7 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("--src-mac", required=True,  help="Spoofed source MAC address (e.g. aa:bb:cc:dd:ee:ff)")
     parser.add_argument("--dst-port", type=int, default=80,   help="Target port (default: 80)")
     parser.add_argument("--count",    type=int, default=25,   help="Number of packets to send (default: 25)")
-    parser.add_argument("--iface",                            help="Network interface to send on (default: Scapy's default)")
+    parser.add_argument("--iface",                             help="Network interface to send on (default: Scapy's default)")
+    parser.add_argument("--inter",    type=float, default=0,   help="Seconds between packets (default: 0)")
 
     args = parser.parse_args()
 
@@ -51,4 +52,5 @@ if __name__ == "__main__":
         dst_port=args.dst_port,
         count=args.count,
         iface=args.iface,
+        inter=args.inter,
     )
