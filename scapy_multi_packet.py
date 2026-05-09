@@ -1,4 +1,8 @@
-from scapy.all import *
+from scapy.layers.l2 import Ether
+from scapy.layers.inet import IP, TCP
+from scapy.volatile import RandShort
+from scapy.sendrecv import sendp
+from scapy.config import conf
 import sys
 import argparse
 import ipaddress
