@@ -1,30 +1,17 @@
 from scapy.all import *
 import sys
+import argparse
 
 
 def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25):
-    """
-    Sends TCP packets with spoofed MAC and IP addresses.
-    
-    Parameters:
-    - dst_ip: Destination IP address (e.g., "192.168.1.100")
-    - dst_mac: Destination MAC address (e.g., "00:11:22:33:44:55")
-    - src_ip: Spoofed source IP address (e.g., "10.0.0.1")
-    - src_mac: Spoofed source MAC address (e.g., "aa:bb:cc:dd:ee:ff")
-    - dst_port: Destination port (default: 80)
-    - count: Number of packets to send (default: 25)
-    """
     try:
-        # Craft the packet
         packet = (Ether(src=src_mac, dst=dst_mac) /
                   IP(src=src_ip, dst=dst_ip) /
                   TCP(sport=RandShort(), dport=dst_port, flags="S"))
 
-        # Show packet details (optional, for verification)
         packet.show()
 
-        # Send packets at layer 2
-        print(f"Sending {count} spoofed packets to {dst_ip}...")
+        print(f"Sending {count} spoofed packets to {dst_ip}:{dst_port}...")
         sendp(packet, count=count, verbose=True)
 
         print("Packets sent successfully.")
@@ -38,17 +25,27 @@ def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25
 
 
 if __name__ == "__main__":
-    # Configuration
-    DST_IP = "192.168.86.32"  # Replace with target IP
-    DST_MAC = "00:11:22:33:44:55"  # Replace with target MAC
-    SRC_IP = "10.0.0.1"  # Spoofed source IP
-    SRC_MAC = "aa:bb:cc:dd:ee:ff"  # Spoofed source MAC
-    DST_PORT = 80  # Target port (e.g., HTTP)
-    COUNT = 25  # Number of packets
+    parser = argparse.ArgumentParser(
+        description="Send TCP SYN packets with spoofed MAC and IP addresses.",
+        epilog="WARNING: Use only on networks you are authorized to test."
+    )
+    parser.add_argument("--dst-ip",  required=True,  help="Target IP address")
+    parser.add_argument("--dst-mac", required=True,  help="Target MAC address (e.g. 00:11:22:33:44:55)")
+    parser.add_argument("--src-ip",  required=True,  help="Spoofed source IP address")
+    parser.add_argument("--src-mac", required=True,  help="Spoofed source MAC address (e.g. aa:bb:cc:dd:ee:ff)")
+    parser.add_argument("--dst-port", type=int, default=80,  help="Target port (default: 80)")
+    parser.add_argument("--count",    type=int, default=25,  help="Number of packets to send (default: 25)")
 
-    # Ethical use reminder
+    args = parser.parse_args()
+
     print("WARNING: Ensure you have permission to send packets to the target.")
-    print("Spoofing without authorization may be illegal.")
+    print("Spoofing without authorization may be illegal.\n")
 
-    # Send the packets
-    send_spoofed_packets(DST_IP, DST_MAC, SRC_IP, SRC_MAC, DST_PORT, COUNT)
+    send_spoofed_packets(
+        dst_ip=args.dst_ip,
+        dst_mac=args.dst_mac,
+        src_ip=args.src_ip,
+        src_mac=args.src_mac,
+        dst_port=args.dst_port,
+        count=args.count,
+    )

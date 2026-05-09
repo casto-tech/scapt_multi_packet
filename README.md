@@ -34,25 +34,36 @@ sudo ~/Git/scapt_multi_packet/venv/bin/python3 scapy_multi_packet.py
 
 ---
 
-## Configuration
+## Usage
 
-Edit the parameters at the bottom of the script before running:
+All arguments are passed on the command line — no need to edit the script.
 
-```python
-DST_IP   = "192.168.1.100"       # Target IP address
-DST_MAC  = "00:11:22:33:44:55"   # Target MAC address
-SRC_IP   = "10.0.0.1"            # Spoofed source IP
-SRC_MAC  = "aa:bb:cc:dd:ee:ff"   # Spoofed source MAC
-DST_PORT = 80                    # Target port
-COUNT    = 25                    # Number of packets to send
+```
+sudo python3 scapy_multi_packet.py \
+  --dst-ip  <target IP>   \
+  --dst-mac <target MAC>  \
+  --src-ip  <spoofed IP>  \
+  --src-mac <spoofed MAC> \
+  [--dst-port <port>]     \   # default: 80
+  [--count <n>]               # default: 25
 ```
 
-Then run:
+**Quick example:**
 
 ```bash
-sudo python3 scapy_multi_packet.py
-# or with a venv:
-sudo /path/to/venv/bin/python3 scapy_multi_packet.py
+sudo python3 scapy_multi_packet.py \
+  --dst-ip 192.168.1.100 \
+  --dst-mac 00:11:22:33:44:55 \
+  --src-ip 10.0.0.1 \
+  --src-mac aa:bb:cc:dd:ee:ff \
+  --dst-port 443 \
+  --count 10
+```
+
+Built-in help:
+
+```bash
+sudo python3 scapy_multi_packet.py --help
 ```
 
 ---
@@ -65,13 +76,14 @@ All use cases require **explicit authorization** on the target network or system
 
 Verify that your firewall or intrusion detection system correctly drops or flags SYN packets arriving from spoofed sources.
 
-```python
-DST_IP   = "192.168.1.1"         # Firewall / gateway under test
-DST_MAC  = "aa:bb:cc:dd:ee:01"
-SRC_IP   = "10.99.99.99"         # Address that should be blocked
-SRC_MAC  = "de:ad:be:ef:00:01"
-DST_PORT = 22                    # Test SSH ingress rule
-COUNT    = 10
+```bash
+sudo python3 scapy_multi_packet.py \
+  --dst-ip 192.168.1.1 \
+  --dst-mac aa:bb:cc:dd:ee:01 \
+  --src-ip 10.99.99.99 \
+  --src-mac de:ad:be:ef:00:01 \
+  --dst-port 22 \
+  --count 10
 ```
 
 Expected result: packets appear in firewall logs / IDS alerts; traffic is dropped.
@@ -82,13 +94,14 @@ Expected result: packets appear in firewall logs / IDS alerts; traffic is droppe
 
 Confirm that your SIEM or packet capture pipeline records spoofed-source traffic correctly.
 
-```python
-DST_IP   = "192.168.1.50"        # Monitored host
-DST_MAC  = "aa:bb:cc:dd:ee:02"
-SRC_IP   = "172.16.0.200"        # Known-bad IP in your threat feed
-SRC_MAC  = "ca:fe:ba:be:00:02"
-DST_PORT = 443
-COUNT    = 5
+```bash
+sudo python3 scapy_multi_packet.py \
+  --dst-ip 192.168.1.50 \
+  --dst-mac aa:bb:cc:dd:ee:02 \
+  --src-ip 172.16.0.200 \
+  --src-mac ca:fe:ba:be:00:02 \
+  --dst-port 443 \
+  --count 5
 ```
 
 Check that your monitoring tool logs the correct source IP, not the sender's real IP.
@@ -99,13 +112,14 @@ Check that your monitoring tool logs the correct source IP, not the sender's rea
 
 Send SYN packets to probe which ports on a lab host respond — useful when you control both ends and want to observe TCP state-machine behavior without a full connection.
 
-```python
-DST_IP   = "192.168.1.200"       # Lab target
-DST_MAC  = "aa:bb:cc:dd:ee:03"
-SRC_IP   = "192.168.1.201"       # Real or spoofed source
-SRC_MAC  = "de:ad:be:ef:00:03"
-DST_PORT = 8080                  # Port under test
-COUNT    = 1
+```bash
+sudo python3 scapy_multi_packet.py \
+  --dst-ip 192.168.1.200 \
+  --dst-mac aa:bb:cc:dd:ee:03 \
+  --src-ip 192.168.1.201 \
+  --src-mac de:ad:be:ef:00:03 \
+  --dst-port 8080 \
+  --count 1
 ```
 
 ---
@@ -114,33 +128,24 @@ COUNT    = 1
 
 Flood a test server with SYN packets to observe how it handles connection exhaustion (SYN flood simulation). **Only run on isolated lab hardware you own.**
 
-```python
-DST_IP   = "10.0.0.5"
-DST_MAC  = "aa:bb:cc:dd:ee:04"
-SRC_IP   = "10.0.0.99"
-SRC_MAC  = "ba:dc:af:eb:ad:04"
-DST_PORT = 80
-COUNT    = 1000
+```bash
+sudo python3 scapy_multi_packet.py \
+  --dst-ip 10.0.0.5 \
+  --dst-mac aa:bb:cc:dd:ee:04 \
+  --src-ip 10.0.0.99 \
+  --src-mac ba:dc:af:eb:ad:04 \
+  --dst-port 80 \
+  --count 1000
 ```
 
 ---
 
 ## Using the function directly (scripting / automation)
 
-`send_spoofed_packets()` can be imported and called from your own scripts:
+`send_spoofed_packets()` can be imported and called from your own scripts for more advanced workflows:
 
 ```python
 from scapy_multi_packet import send_spoofed_packets
-
-# Single targeted probe
-send_spoofed_packets(
-    dst_ip="192.168.1.100",
-    dst_mac="00:11:22:33:44:55",
-    src_ip="10.0.0.1",
-    src_mac="aa:bb:cc:dd:ee:ff",
-    dst_port=443,
-    count=5
-)
 
 # Loop over multiple ports
 for port in [22, 80, 443, 8080]:
