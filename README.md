@@ -45,7 +45,8 @@ sudo python3 scapy_multi_packet.py \
   --src-ip  <spoofed IP>  \
   --src-mac <spoofed MAC> \
   [--dst-port <port>]     \   # default: 80
-  [--count <n>]               # default: 25
+  [--count <n>]           \   # default: 25
+  [--iface <interface>]       # default: Scapy's auto-selected interface
 ```
 
 **Quick example:**
@@ -183,7 +184,7 @@ Ether(src=src_mac, dst=dst_mac)   ← Layer 2: spoofed MAC addresses
 | `ModuleNotFoundError: No module named 'scapy'` | sudo uses a different Python | Run `sudo /path/to/venv/bin/python3 scapy_multi_packet.py` |
 | `PermissionError` | Not running as root | Prefix with `sudo` |
 | Packets sent but target never receives them | Wrong `DST_MAC` | Use `arp -n` or `ip neigh` to find the correct MAC |
-| No output / script hangs | Interface busy or wrong iface | Pass `iface="eth0"` to `sendp()` explicitly |
+| No output / script hangs | Interface busy or wrong iface | Add `--iface eth0` (or `wlan0`, etc.) to the command |
 
 ---
 
