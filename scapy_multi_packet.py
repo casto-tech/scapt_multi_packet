@@ -37,16 +37,28 @@ def validate_port(value):
     return port
 
 
-def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25, iface=None, inter=0):
+VALID_FLAGS = set("FSRPAUEC")
+
+def validate_flags(value):
+    invalid = set(value.upper()) - VALID_FLAGS
+    if invalid:
+        raise argparse.ArgumentTypeError(
+            f"Unknown TCP flag(s): {', '.join(sorted(invalid))} — "
+            f"valid flags are F S R P A U E C"
+        )
+    return value.upper()
+
+
+def send_spoofed_packets(dst_ip, dst_mac, src_ip, src_mac, dst_port=80, count=25, iface=None, inter=0, flags="S"):
     try:
         packet = (Ether(src=src_mac, dst=dst_mac) /
                   IP(src=src_ip, dst=dst_ip) /
-                  TCP(sport=RandShort(), dport=dst_port, flags="S"))
+                  TCP(sport=RandShort(), dport=dst_port, flags=flags))
 
         packet.show()
 
         iface = iface or conf.iface
-        print(f"Sending {count} spoofed packets to {dst_ip}:{dst_port} via {iface} (inter={inter}s)...")
+        print(f"Sending {count} spoofed packets to {dst_ip}:{dst_port} via {iface} [flags={flags}] (inter={inter}s)...")
         sendp(packet, iface=iface, count=count, inter=inter, verbose=True)
 
         print("Packets sent successfully.")
@@ -70,6 +82,8 @@ if __name__ == "__main__":
     parser.add_argument("--src-mac", required=True,  type=validate_mac,  help="Spoofed source MAC address (e.g. aa:bb:cc:dd:ee:ff)")
     parser.add_argument("--dst-port", type=validate_port, default=80,    help="Target port 1–65535 (default: 80)")
     parser.add_argument("--count",    type=int,       default=25,         help="Number of packets to send (default: 25)")
+    parser.add_argument("--flags",    type=validate_flags, default="S",
+                        help="TCP flags to set, e.g. S, SA, FA, FSRP (default: S)")
     parser.add_argument("--iface",                             help="Network interface to send on (default: Scapy's default)")
     parser.add_argument("--inter",    type=float, default=0,   help="Seconds between packets (default: 0)")
 
@@ -85,6 +99,7 @@ if __name__ == "__main__":
         src_mac=args.src_mac,
         dst_port=args.dst_port,
         count=args.count,
+        flags=args.flags,
         iface=args.iface,
         inter=args.inter,
     )

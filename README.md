@@ -46,6 +46,7 @@ sudo python3 scapy_multi_packet.py \
   --src-mac <spoofed MAC> \
   [--dst-port <port>]     \   # default: 80
   [--count <n>]           \   # default: 25
+  [--flags <flags>]       \   # default: S  (e.g. S, SA, FA, FIN, RST)
   [--iface <interface>]   \   # default: Scapy's auto-selected interface
   [--inter <seconds>]         # default: 0 (no delay between packets)
 ```
